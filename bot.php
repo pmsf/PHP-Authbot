@@ -123,9 +123,8 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
 			$last = end($members);
 			$moremembers = $discord->guild->listGuildMembers(['guild.id' => $guild, 'limit' => 1000, 'after' => $last->user->id]);
 			$members = array_merge($members, $moremembers);
-			echo $members % 1000 == 0 . PHP_EOL;
 		}
-		while( $members % 1000 == 0 );
+		while( count($members) % 1000 == 0 );
 	}
 	echo "\033[33mTotal member count for " . $discord_name->name . ": " . count($members) . PHP_EOL;
 	echo PHP_EOL;
@@ -152,7 +151,6 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
 					]);
 					echo "\033[92mMember " . $member->user->username . " updated with new access level " . $highestlevel . PHP_EOL;
 				}
-				//print_r($memberindb);
 			}
 			
 		}
@@ -160,8 +158,6 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
 	echo PHP_EOL;
 	echo PHP_EOL;
 }
-//var_dump($discord->guild->getGuildRoles(['guild.id' => 446375528157544450]));
-
 
 // Return to default color
 echo "\033[39m" . PHP_EOL;
