@@ -1,0 +1,15 @@
+{
+    "name": "pmsf/phpauthbot",
+    "description": "Authbot designed for PMSF https://github.com/pmsf/PMSF",
+    "license": "GNU General Public License (GPL)",
+    "authors": [
+        {
+            "name": "Wheel",
+            "email": "wheel@pmsf.com"
+        }
+    ],
+    "require": {
+        "restcord/restcord": "^0.3.2",
+        "catfan/medoo": "^1.7"
+    }
+}

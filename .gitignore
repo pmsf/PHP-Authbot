@@ -1,0 +1,7 @@
+# PHP Auth Bot
+
+config.php
+log/*
+composer.phar
+composer.lock
+/vendor/
