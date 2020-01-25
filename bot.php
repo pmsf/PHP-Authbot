@@ -153,17 +153,16 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
     echo PHP_EOL;
 }
 echo "\033[34mChecking access rules and updating if needed" . PHP_EOL;
+$noupdate = false;
 foreach ( $memberslist as $member) {
     $memberindb = $db->get("users", ["id", "access_level"], ["id" => $member["id"]]);
     if (empty($memberindb) ) {
-        $newmember = $db->insert(
-            "users", [
+        $newmembers[] = [
             "id" => $member["id"],
             "user" => $member["username"] . "#" . $member["discriminator"],
             "login_system" => "discord",
             "access_level" => $member["highest_access"]
-            ]
-        );
+            ];
         echo "\033[92mNew member " . $member["username"] . " added with access level " . $member["highest_access"] . PHP_EOL;
     } else if (intval($memberindb['access_level']) !== $member["highest_access"]) {
         $db->update(
@@ -178,7 +177,10 @@ foreach ( $memberslist as $member) {
         $noupdate = true;
     }
 }
-if ($noupdate ) {
+if (!empty($newmembers)) {
+    $db->insert("users", $newmembers);
+}
+if ( $noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
 echo PHP_EOL;
