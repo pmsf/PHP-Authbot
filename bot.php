@@ -126,8 +126,7 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
             $last = end($members);
             $moremembers = $discord->guild->listGuildMembers(['guild.id' => $guild, 'limit' => 1000, 'after' => $last->user->id]);
             $members = array_merge($members, $moremembers);
-        }
-        while( count($members) % 1000 == 0 );
+        } while ( count($members) % 1000 == 0 );
     }
     // Flatten memberlist
     foreach ( $members as $member) {
