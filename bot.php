@@ -8,6 +8,7 @@ if (! file_exists('config.php')) {
 	echo "Config file does not exist create first 'cp example.config.php config.php'" . PHP_EOL;
 	die();
 }
+include 'functions.php';
 include 'config.php';
 
 use Medoo\Medoo;
@@ -93,10 +94,10 @@ if ( empty($results) ) {
 	}
 	die();
 }
-	
+$memberslist = [];
 echo PHP_EOL;
 echo "\033[34mInitial check guilds and roles on startup". PHP_EOL;
-
+// Build a full memberlist from across all discord servers
 foreach ( $guilds['guildIDS'] as $guild => $roles) {
 	if (is_numeric($guild)) {
 		$discord_name = $discord->guild->getGuild(['guild.id' => $guild]);
@@ -126,38 +127,57 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
 		}
 		while( count($members) % 1000 == 0 );
 	}
-	echo "\033[33mTotal member count for " . $discord_name->name . ": " . count($members) . PHP_EOL;
-	echo PHP_EOL;
-	echo "\033[34mChecking access rules and updating if needed" . PHP_EOL;
-	foreach ( $members as $key => $member) {
+	// Flatten memberlist
+	foreach ( $members as $member) {
+		// Only process members with roles
 		if ( !empty ($member->roles) ) {
 			$accesslevels = array_intersect_key($roles, array_flip(array_filter($member->roles)));
+			// Filter out all members with roles without access levels
 			if ( !empty ($accesslevels) ) {
-				$highestlevel =  max($accesslevels);
-				$memberindb = $db->get("users", ["id", "access_level"], ["id" => $member->user->id]);
-				if (empty($memberindb) ) {
-					$newmember = $db->insert("users", [
-						"id" => $member->user->id,
-						"user" => $member->user->username . "#" . $member->user->discriminator,
-						"login_system" => "discord",
-						"access_level" => $highestlevel
-					]);
-					echo "\033[92mNew member " . $member->user->username . " added with access level " . $highestlevel . PHP_EOL;
-				} else if (intval($memberindb['access_level']) !== $highestlevel) {
-					$db->update("users", [
-						"access_level" => $highestlevel
-						],[
-						"id" => $member->user->id
-					]);
-					echo "\033[92mMember " . $member->user->username . " updated with new access level " . $highestlevel . PHP_EOL;
+				$exists = array_search($member->user->id, array_column($memberslist, 'id'));
+				if ( $exists && ($memberslist[$exists]["highest_access"] <  max($accesslevels))) {
+					$memberslist[$exists]["highest_access"] = max($accesslevels);
+				} else if ( !$exists ) {
+					$user["id"] = $member->user->id;
+					$user["username"] = $member->user->username;
+					$user["discriminator"] = $member->user->discriminator;
+					$user["highest_access"] = max($accesslevels);
+					$memberslist[] = $user;
+
 				}
 			}
-			
 		}
 	}
-	echo PHP_EOL;
+	echo "\033[33mTotal member count for " . $discord_name->name . ": " . count($members) . PHP_EOL;
 	echo PHP_EOL;
 }
+echo "\033[34mChecking access rules and updating if needed" . PHP_EOL;
+foreach ( $memberslist as $member) {
+	$memberindb = $db->get("users", ["id", "access_level"], ["id" => $member["id"]]);
+	if (empty($memberindb) ) {
+		$newmember = $db->insert("users", [
+			"id" => $member["id"],
+			"user" => $member["username"] . "#" . $member["discriminator"],
+			"login_system" => "discord",
+			"access_level" => $member["highest_access"]
+		]);
+		echo "\033[92mNew member " . $member["username"] . " added with access level " . $member["highest_access"] . PHP_EOL;
+	} else if (intval($memberindb['access_level']) !== $member["highest_access"]) {
+		$db->update("users", [
+			"access_level" => $member["highest_access"]
+			],[
+			"id" => $member["id"]
+		]);
+		echo "\033[92mMember " . $member["username"] . " updated with new access level " . $member["highest_access"] . PHP_EOL;
+	} else {
+		$noupdate = true;
+	}
+}
+if ( $noupdate ) {
+	echo "\033[92mNo member updates" . PHP_EOL;
+}
+echo PHP_EOL;
+echo PHP_EOL;
 
 // Return to default color
 echo "\033[39m" . PHP_EOL;
