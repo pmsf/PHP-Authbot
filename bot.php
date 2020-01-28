@@ -185,13 +185,4 @@ if (!empty($newmembers)) {
 if ( $noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
-echo PHP_EOL;
-echo PHP_EOL;
-
-echo "\033[32mPre startup checks finished succesfull Starting BOT" . PHP_EOL;
-
-$getaudit = 'audit-log';
-$audit = $discord->$getaudit->getGuildAuditLog(['guild.id' => $guild]);
-//print_r($audit);
-// Return to default color
 echo "\033[39m" . PHP_EOL;
