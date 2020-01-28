@@ -8,7 +8,6 @@ if (! file_exists('config.php')) {
     echo "Config file does not exist create first 'cp example.config.php config.php'" . PHP_EOL;
     die();
 }
-require 'functions.php';
 require 'config.php';
 
 use Medoo\Medoo;
@@ -131,6 +130,9 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
     // Flatten memberlist
     foreach ( $members as $member) {
         // Only process members with roles
+        if ( in_array($guild, array_flip($roles)) ) {
+            array_push($member->roles, $role);
+        }
         if (!empty($member->roles) ) {
             $accesslevels = array_intersect_key($roles, array_flip(array_filter($member->roles)));
             // Filter out all members with roles without access levels
@@ -186,5 +188,10 @@ if ( $noupdate ) {
 echo PHP_EOL;
 echo PHP_EOL;
 
+echo "\033[32mPre startup checks finished succesfull Starting BOT" . PHP_EOL;
+
+$getaudit = 'audit-log';
+$audit = $discord->$getaudit->getGuildAuditLog(['guild.id' => $guild]);
+//print_r($audit);
 // Return to default color
 echo "\033[39m" . PHP_EOL;
