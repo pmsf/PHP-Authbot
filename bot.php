@@ -131,7 +131,7 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
     foreach ( $members as $member) {
         // Only process members with roles
         if ( in_array($guild, array_flip($roles)) ) {
-            array_push($member->roles, $role);
+            array_push($member->roles, $guild);
         }
         if (!empty($member->roles) ) {
             $accesslevels = array_intersect_key($roles, array_flip(array_filter($member->roles)));
