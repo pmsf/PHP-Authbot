@@ -8,7 +8,6 @@ if (! file_exists('config.php')) {
     echo "Config file does not exist create first 'cp example.config.php config.php'" . PHP_EOL;
     die();
 }
-require 'functions.php';
 require 'config.php';
 
 use Medoo\Medoo;
@@ -126,12 +125,14 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
             $last = end($members);
             $moremembers = $discord->guild->listGuildMembers(['guild.id' => $guild, 'limit' => 1000, 'after' => $last->user->id]);
             $members = array_merge($members, $moremembers);
-        }
-        while( count($members) % 1000 == 0 );
+        } while ( count($members) % 1000 == 0 );
     }
     // Flatten memberlist
     foreach ( $members as $member) {
         // Only process members with roles
+        if ( in_array($guild, array_flip($roles)) ) {
+            array_push($member->roles, $role);
+        }
         if (!empty($member->roles) ) {
             $accesslevels = array_intersect_key($roles, array_flip(array_filter($member->roles)));
             // Filter out all members with roles without access levels
@@ -154,17 +155,16 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
     echo PHP_EOL;
 }
 echo "\033[34mChecking access rules and updating if needed" . PHP_EOL;
+$noupdate = false;
 foreach ( $memberslist as $member) {
     $memberindb = $db->get("users", ["id", "access_level"], ["id" => $member["id"]]);
     if (empty($memberindb) ) {
-        $newmember = $db->insert(
-            "users", [
+        $newmembers[] = [
             "id" => $member["id"],
             "user" => $member["username"] . "#" . $member["discriminator"],
             "login_system" => "discord",
             "access_level" => $member["highest_access"]
-            ]
-        );
+            ];
         echo "\033[92mNew member " . $member["username"] . " added with access level " . $member["highest_access"] . PHP_EOL;
     } else if (intval($memberindb['access_level']) !== $member["highest_access"]) {
         $db->update(
@@ -179,7 +179,10 @@ foreach ( $memberslist as $member) {
         $noupdate = true;
     }
 }
-if ($noupdate ) {
+if (!empty($newmembers)) {
+    $db->insert("users", $newmembers);
+}
+if ( $noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
 $dbmemberlist = $db->select("users", ["id", "user", "access_level"]);
@@ -208,5 +211,10 @@ if ($noupdate ) {
 echo PHP_EOL;
 echo PHP_EOL;
 
+echo "\033[32mPre startup checks finished succesfull Starting BOT" . PHP_EOL;
+
+$getaudit = 'audit-log';
+$audit = $discord->$getaudit->getGuildAuditLog(['guild.id' => $guild]);
+//print_r($audit);
 // Return to default color
 echo "\033[39m" . PHP_EOL;
