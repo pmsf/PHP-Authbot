@@ -131,7 +131,7 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
     foreach ( $members as $member) {
         // Only process members with roles
         if ( in_array($guild, array_flip($roles)) ) {
-            array_push($member->roles, $role);
+            array_push($member->roles, $guild);
         }
         if (!empty($member->roles) ) {
             $accesslevels = array_intersect_key($roles, array_flip(array_filter($member->roles)));
@@ -185,6 +185,7 @@ if (!empty($newmembers)) {
 if ( $noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
+
 $dbmemberlist = $db->select("users", ["id", "user", "access_level"]);
 echo "\033[34mChecking for removed users or roles" . PHP_EOL;
 foreach ( $dbmemberlist as $dbmember ) {
