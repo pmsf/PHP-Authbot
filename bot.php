@@ -186,8 +186,6 @@ if ( $noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
 $dbmemberlist = $db->select("users", ["id", "user", "access_level"]);
-#file_put_contents('log.txt', print_r($dbmemberlist, true), FILE_APPEND);
-#file_put_contents('log_1.txt', print_r($memberslist, true), FILE_APPEND);
 echo "\033[34mChecking for removed users or roles" . PHP_EOL;
 foreach ( $dbmemberlist as $dbmember ) {
     $remove = array_search($dbmember['id'], array_column($memberslist, 'id'));
