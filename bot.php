@@ -131,7 +131,7 @@ foreach ( $guilds['guildIDS'] as $guild => $roles) {
     foreach ( $members as $member) {
         // Only process members with roles
         if ( in_array($guild, array_flip($roles)) ) {
-            array_push($member->roles, $role);
+            array_push($member->roles, $guild);
         }
         if (!empty($member->roles) ) {
             $accesslevels = array_intersect_key($roles, array_flip(array_filter($member->roles)));
@@ -185,13 +185,4 @@ if (!empty($newmembers)) {
 if ( $noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
-echo PHP_EOL;
-echo PHP_EOL;
-
-echo "\033[32mPre startup checks finished succesfull Starting BOT" . PHP_EOL;
-
-$getaudit = 'audit-log';
-$audit = $discord->$getaudit->getGuildAuditLog(['guild.id' => $guild]);
-//print_r($audit);
-// Return to default color
 echo "\033[39m" . PHP_EOL;
