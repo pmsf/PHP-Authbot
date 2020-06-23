@@ -182,6 +182,29 @@ foreach ( $memberslist as $member) {
 if ($noupdate ) {
     echo "\033[92mNo member updates" . PHP_EOL;
 }
+$dbmemberlist = $db->select("users", ["id", "user", "access_level"]);
+#file_put_contents('log.txt', print_r($dbmemberlist, true), FILE_APPEND);
+#file_put_contents('log_1.txt', print_r($memberslist, true), FILE_APPEND);
+echo "\033[34mChecking for removed users or roles" . PHP_EOL;
+foreach ( $dbmemberlist as $dbmember ) {
+    $remove = array_search($dbmember['id'], array_column($memberslist, 'id'));
+    if (empty(is_numeric($remove)) && $dbmember['access_level'] != null) {
+        echo "\033[92mMember " . $dbmember['user'] . " does not have any roles meeting criteria for selected access levels" . PHP_EOL;
+        $db->update(
+            "users", [
+            "access_level" => null
+            ], [
+            "id" => $dbmember["id"]
+            ]
+       );
+    } else {
+        $noupdate = true;
+    }
+}
+if ($noupdate ) {
+    echo "\033[92mNo access levels to be removed" . PHP_EOL;
+}
+
 echo PHP_EOL;
 echo PHP_EOL;
 
